@@ -8,7 +8,7 @@
     "url": "git@github.com:digitalXlabs/aaas.git"
   },
   "scripts": {
-    "test": "./node_modules/.bin/jasmine-node --autotest test --watch ./"
+    "test": "./node_modules/.bin/jasmine-node --autotest test"
   },
   "dependencies": {
     "fs": "0.0.2",
