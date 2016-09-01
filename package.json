@@ -1,0 +1,23 @@
+{
+  "name": "digitalXlabs-aaas",
+  "version": "0.0.1",
+  "author": "@digital",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:digitalXlabs/aaas.git"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/jasmine-node --autotest test --watch ./"
+  },
+  "dependencies": {
+    "fs": "0.0.2",
+    "node-uuid": "^1.4.7"
+  },
+  "devDependencies": {
+    "jasmine-node": "^1.14.5",
+    "request": "^2.74.0",
+    "aws-sdk": "^2.4.13",
+    "rewire": "^2.5.2"
+  }
+}
