@@ -1,16 +1,6 @@
 'use strict';
 
 
-let AWS = require("aws-sdk");
-let fs = require('fs');
-
-let kms = new AWS.KMS({
-    region: "eu-west-1"
-});
-
-let config = {};
-let AWSCognito = new AWS.CognitoIdentityServiceProvider();
-
 class Registrant {
     constructor(email, password) {
         this.email = email;
@@ -26,6 +16,15 @@ class SignUp {
      * @return {type}  description
      */
     constructor(event, context, callback) {
+        this.AWS = require("aws-sdk");
+
+        this.fs = require('fs');
+
+        this.getKmsclient();
+        this.setConfigRegion("eu-west-1");
+
+
+        this.AWSCognito = new this.AWS.CognitoIdentityServiceProvider();
 
         this.event = event;
         this.context = context;
@@ -33,31 +32,54 @@ class SignUp {
 
         this.user = new Registrant(event.email, event.password);
 
-        let params = {
-            CiphertextBlob: fs.readFileSync('./encrypted-secret')
-        };
+        this.dkCallback.bind(this);
 
-        kms.decrypt(params, function(err, data) {
-            if (err) {
-                this.context.fail(err);
-            } else {
-                config = data;
-            }
+
+    }
+
+    setConfigRegion(region) {
+        this.AWS.config.update({
+            region: region
         });
     }
 
-    getPoolData() {
-        return {
-            UserPoolId: config.user_pool_id,
-            ClientId: config.client_id
+    getKmsclient() {
+        this.kms = new this.AWS.KMS({
+            region: "eu-west-1"
+        });
+    }
+
+    dkCallback(err, data) {
+
+        let that = this;
+        if (err) {
+            that.context.fail(err);
+        } else {
+            that.config = JSON.parse(data['Plaintext'].toString());
+            this.AWSCognito.signUp(this.getParams(), function(err, data) {
+                if (err) that.context.fail(err); // an error occurred
+                else that.context.succeed({
+                    result: data
+                }); // successful response
+            });
         }
     }
 
+    // getPoolData() {
+    //     return {
+    //         UserPoolId: config.user_pool_id,
+    //         ClientId: config.client_id
+    //     }
+    // }
+
     getUserPool() {
-        return new AWSCognito.CognitoUserPool(this.getPoolData());
+        console.log("function getuserpool" + config.client_id);
+        return new this.AWSCognito.CognitoUserPool(this.getPoolData());
     }
 
     getParams() {
+        console.log("function getparams");
+        console.log(this.config);
         let attributeList = [];
         let dataEmail = {
             Name: 'email',
@@ -71,31 +93,64 @@ class SignUp {
         attributeList.push(dataEmail);
         attributeList.push(dataNickname);
 
-        this.params = {
-            ClientId: config.client_id,
+        return {
+            ClientId: this.config.client_id,
             Password: this.user.password,
             Username: this.user.email,
             UserAttributes: attributeList,
+            ValidationData: [{
+                    Name: 'namevalidatoin',
+                    Value: 'notsurewhatshouldbehere'
+                }]
+            }
+        }
+        sendSignUpRequest() {
+            // this.getParams();
+            let that = this;
+            this.AWSCognito.signUp(this.getParams(), function(err, data) {
+                if (err) that.context.fail(err); // an error occurred
+                else that.context.succeed({
+                    result: data
+                }); // successful response
+            });
+        }
+
+        doOne() {
+            let params = {
+                CiphertextBlob: this.fs.readFileSync('./encrypted-secret')
+            };
+            let that = this;
+            this.kms.decrypt(params, function(err, data) {
+
+                if (err) {
+                    that.context.fail(err);
+                } else {
+                    that.config = JSON.parse(data['Plaintext'].toString());
+                    that.AWSCognito.signUp(that.getParams(), function(err, data) {
+                        if (err) that.context.fail(err); // an error occurred
+                        else that.context.succeed({
+                            result: data
+                        }); // successful response
+                    });
+                }
+            });
+            // this.sendSignUpRequest();
+
         }
     }
 
-    sendSignUpRequest() {
-        AWSCognito.signUp(this.params, function(err, data) {
-            if (err) console.log(err, err.stack); // an error occurred
-            else console.log(data); // successful response
-        });
+    module.exports = {
+        SignUp,
+        Registrant
     }
-}
 
-module.exports = {
-    SignUp,
-    Registrant
-}
-module.exports.register = function(event, context, cb) {
-    // get my user pool from config
-    // check I have email and password from event payload
-    // define attributes array
-    // call sing up
-    // if err pass back as a fail
-    // otherwise tell user to check email for
-}
+    module.exports.register = function(event, context, cb) {
+        // get my user pool from config
+        // check I have email and password from event payload
+        // define attributes array
+        // call sing up
+        // if err pass back as a fail
+        // otherwise tell user to check email for
+        const stuffandfings = new SignUp(event, context, cb);
+        stuffandfings.doOne();
+    }

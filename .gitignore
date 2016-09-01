@@ -38,3 +38,8 @@ jspm_packages
 
 # configs
 config.json
+event.json
+encrypted-secret
+
+#serverless
+.serverless

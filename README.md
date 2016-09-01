@@ -1,5 +1,7 @@
 # AWS Cognito Lambda Auth system [![Build Status](https://travis-ci.org/digitalXlabs/aaas.svg?branch=master)](https://travis-ci.org/digitalXlabs/aaas)
 
+(this is not ready for production AT ALL)
+
 This project is all about using the AWS Cognito service to create an Authentication As A Service platform.
 We will add more to this readme as more of the project evolves
 
@@ -27,6 +29,8 @@ Set up a file with the following contents
 }
 ```
 
+
+
 ### Create the encrypted secret
 
 1. Login to AWS console and go to IAM > Encryption Keys
@@ -37,6 +41,8 @@ Set up a file with the following contents
 ```
 aws kms encrypt --profile <your-profile> --key-id <arn> --plaintext file://config.json --query CiphertextBlob --output text | base64 -D > ./encrypted-secret
 ```
+
+
 
 ## Deploy using Serverless Framework (beta)
 
