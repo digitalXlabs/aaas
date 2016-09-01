@@ -33,7 +33,7 @@ package:
  # artifact: my-service-code.zip
 
 functions:
-  hello:
+  register:
     handler: signup.register
 
 #   you can add any of the following events
