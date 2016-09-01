@@ -1,4 +1,4 @@
-# AWS Cognito Lambda Auth system
+# AWS Cognito Lambda Auth system [![Build Status](https://travis-ci.org/digitalXlabs/aaas.svg?branch=master)](https://travis-ci.org/digitalXlabs/aaas)
 
 This project is all about using the AWS Cognito service to create an Authentication As A Service platform.
 We will add more to this readme as more of the project evolves
