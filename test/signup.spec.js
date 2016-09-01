@@ -3,18 +3,19 @@
 const rewire = require("rewire");
 const AWS = require("aws-sdk");
 
-
 const cispCallback = function(err, data) {
-    if (err) console.log(err);
-    console.log(data);
+  expect(err).toBeDefined();
+  expect(data).toBeUndefined();
+
 }
 
-var AWSCognito = {
-  signUp: function(params, cispCallback){}
+const AWSCognito = {
+    signUp: function(params, cispCallback) {
+        if (!params) cispCallback("There are no parameters");
+        else callback(null, "the data is processed");
+    }
 }
 
-
-// console.log(AWS);
 const obj = rewire('../signup');
 
 const event = {
@@ -23,17 +24,21 @@ const event = {
 }
 
 const context = {
-    fail: function() {},
-    success: function() {}
+    fail: function(message) {
+      expect(message).toBeUndefined();
+    },
+    success: function(data) {
+      expect(data).toBeDefined();
+    }
 }
 
 const callback = function(err, data) {
-    if (err) console.log(err);
-    console.log(data);
+  expect(data).toBeDefined();
+  expect(err).toBeDefined();  // null
 }
 
 const kms = {
-
+    decrypt: function(params, callback) {},
 }
 
 var config = {
@@ -46,14 +51,23 @@ var config = {
 obj.__set__({
     kms: kms,
     config: config,
-    AWSCognito, AWSCognito
+    AWSCognito: AWSCognito
 
-  });
+});
 
 describe('Sign up handlers', function() {
 
     describe('Signup file', function() {
+        it('Registrant class should exist', function() {
+            let user = new obj.Registrant(event.email, event.password);
+            expect(user).toBeDefined();
+            expect(user.constructor.name).toMatch('Registrant');
+            expect(user.email).toMatch(event.email);
+            expect(user.password).toMatch(event.password);
+        });
+
         it('Sign up class constructor', function() {
+
             let signUp = new obj.SignUp(event, context, callback);
 
             expect(signUp).toBeDefined();
@@ -71,13 +85,7 @@ describe('Sign up handlers', function() {
 
         });
 
-        it('Registrant class should exist', function() {
-            let user = new obj.Registrant(event.email, event.password);
-            expect(user).toBeDefined();
-            expect(user.constructor.name).toMatch('Registrant');
-            expect(user.email).toMatch(event.email);
-            expect(user.password).toMatch(event.password);
-        });
+
     });
 
     it('Sign up getPoolData', function() {
@@ -90,38 +98,39 @@ describe('Sign up handlers', function() {
         expect(data.UserPoolId).toMatch(config.user_pool_id);
         expect(data.ClientId).toMatch(config.client_id);
 
-      });
+    });
 
-      it('Sign up getParams', function() {
-          let signUp = new obj.SignUp(event, context, callback);
-           signUp.getParams();
+    it('Sign up getParams', function() {
+        let signUp = new obj.SignUp(event, context, callback);
+        signUp.getParams();
 
-          expect(signUp).toBeDefined();
-          expect(signUp.constructor.name).toMatch('SignUp');
-          expect(signUp.params).toBeDefined();
-          expect(signUp.params.ClientId).toBeDefined();
-          expect(signUp.params.ClientId).toMatch(config.client_id);
-          expect(signUp.params.Password).toBeDefined();
-          expect(signUp.params.Password).toMatch(signUp.user.password);
-          expect(signUp.params.Username).toBeDefined();
-          expect(signUp.params.Username).toMatch(signUp.user.email);
-          expect(signUp.params.UserAttributes).toBeDefined();
-          // expect(signUp.params.UserAttributes).toMatch(config.client_id);
+        expect(signUp).toBeDefined();
+        expect(signUp.constructor.name).toMatch('SignUp');
+        expect(signUp.params).toBeDefined();
+        expect(signUp.params.ClientId).toBeDefined();
+        expect(signUp.params.ClientId).toMatch(config.client_id);
+        expect(signUp.params.Password).toBeDefined();
+        expect(signUp.params.Password).toMatch(signUp.user.password);
+        expect(signUp.params.Username).toBeDefined();
+        expect(signUp.params.Username).toMatch(signUp.user.email);
+        expect(signUp.params.UserAttributes).toBeDefined();
+        // expect(signUp.params.UserAttributes).toMatch(config.client_id);
 
-        });
+    });
 
-        it('Sign up sendSignUpRequest', function() {
-            let signUp = new obj.SignUp(event, context, callback);
-             signUp.getParams();
+    it('Sign up sendSignUpRequest', function() {
+        let signUp = new obj.SignUp(event, context, callback);
 
-            expect(signUp).toBeDefined();
-            expect(signUp.constructor.name).toMatch('SignUp');
-            expect(signUp.params).toBeDefined();
+        expect(signUp).toBeDefined();
+        expect(signUp.constructor.name).toMatch('SignUp');
+        expect(signUp.params).toBeUndefined();
 
-            signUp.sendSignUpRequest();
+        signUp.getParams();
+        expect(signUp.params).toBeDefined();
 
-          });
+        signUp.sendSignUpRequest();
 
 
+    });
 
 });

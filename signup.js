@@ -1,24 +1,15 @@
 'use strict';
 
-const AWS = require("aws-sdk");
-const fs = require('fs');
+
+let AWS = require("aws-sdk");
+let fs = require('fs');
+
 let kms = new AWS.KMS({
     region: "eu-west-1"
 });
-const params = {
-    CiphertextBlob: fs.readFileSync('./encrypted-secret')
-};
-var config = {};
-kms.decrypt(params, function(err, data) {
-    if (err) {
-        context.fail(err);
-    } else {
-        config = data;
-    }
-});
 
+let config = {};
 let AWSCognito = new AWS.CognitoIdentityServiceProvider();
-
 
 class Registrant {
     constructor(email, password) {
@@ -41,6 +32,18 @@ class SignUp {
         this.callback = callback;
 
         this.user = new Registrant(event.email, event.password);
+
+        let params = {
+            CiphertextBlob: fs.readFileSync('./encrypted-secret')
+        };
+
+        kms.decrypt(params, function(err, data) {
+            if (err) {
+                this.context.fail(err);
+            } else {
+                config = data;
+            }
+        });
     }
 
     getPoolData() {
@@ -68,15 +71,15 @@ class SignUp {
         attributeList.push(dataEmail);
         attributeList.push(dataNickname);
 
-         this.params = {
+        this.params = {
             ClientId: config.client_id,
             Password: this.user.password,
             Username: this.user.email,
             UserAttributes: attributeList,
         }
-      }
+    }
 
-      sendSignUpRequest(){
+    sendSignUpRequest() {
         AWSCognito.signUp(this.params, function(err, data) {
             if (err) console.log(err, err.stack); // an error occurred
             else console.log(data); // successful response
