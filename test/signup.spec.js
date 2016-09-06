@@ -1,7 +1,7 @@
 'use strict'
 
-const rewire = require("rewire");
 const AWS = require("aws-sdk");
+const rewire =  require("rewire");
 
 const cispCallback = function(err, data) {
     expect(err).toBeDefined();
@@ -49,13 +49,6 @@ var config = {
     "user_pool_id": "eu-west-sdfsldkfj lsdjfsd",
     "client_id": "ds;fk;sdlkf;sldkfsdfhskdfjhksdjhfksdjhfks"
 }
-
-// obj.__set__({
-//     kms: kms,
-//     config: config,
-//     AWSCognito: AWSCognito
-//
-// });
 
 describe('Sign up handlers', function() {
 
